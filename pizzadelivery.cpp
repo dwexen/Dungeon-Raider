@@ -7,6 +7,7 @@
 *
 */
 #include "Dungeon.h"
+
 /*
 *Pre-condition: A graph exists to traverse
 *
@@ -66,6 +67,11 @@ void Dungeon::mst()
 */
 void Dungeon:: lucrativePath(uint start)
 {
+	if(start > roomCap)
+	{
+		cout << "Starting room does not exist" <<endl;
+		return;
+	}
 	int *lootRatio = new int[roomCap];
 	int *intvisited = new int[roomCap];
 	int max = start;
@@ -123,6 +129,11 @@ void Dungeon:: lucrativePath(uint start)
 
 int* Dungeon::myDijkstra(uint s)
 {
+	if(s > roomCap)
+	{
+		cout << "Starting room does not exist" <<endl;
+		return 0;
+	}
 	int *lootRatio = new int[roomCap];
 	int *intvisited = new int[roomCap];
 	int max = s;
@@ -188,9 +199,9 @@ void Dungeon::lucrativePaths()
 	
 	
 	
-	for(i = 0; i  < n; i++)
+	for(i = 0; i  < roomCap; i++)
 	{
-		for(j = 0; j < n; j++)
+		for(j = 0; j < roomCap; j++)
 		{
 			if(floydMat[i][j] == -2147483646)
 			{
@@ -254,7 +265,7 @@ uint Dungeon::pizzaParty(uint start, uint target, uint budget)
 			{
 				sum = budget;
 			}
-			cout << sum <<endl;
+			//cout << sum <<endl;
 			return sum; 
 		}
 		else
@@ -300,4 +311,135 @@ uint Dungeon::myPizza(uint start, uint target, uint budget)
 		}
 	}
 	return 0;
+}
+void Dungeon:: heroSort(Hero *&h)
+{
+	int i = 0, j = 0, minIndex = 0;
+		for(i = 0; i < heroCap - 1; i++) 
+		{ //outer loop puts the found min in the proper index
+			minIndex = i;
+			for(j = i +1; j < heroCap; j++) //inner loop finds the min
+				if(h[j].strength < h[minIndex].strength) 
+				{
+					minIndex = j;
+				}
+			swap(h,i, minIndex);
+	}
+}
+/*
+*Pre-condition: The user selected the raid option, a proper file has been sent, and the graph is traversable
+*
+*Post-condition: The heroes have cleared every room of the monster, added its treasure to thier
+*				 stockpile of cash each time, and then order as many pizzas as they can.
+*				 The maximum number of pizzas are then delivered.
+*
+*@param: 		start - The heroes' starting point in the dungeon
+*/
+void Dungeon:: raid(uint start)
+{
+	if(start > roomCap)
+	{
+		cout << "Starting room does not exist" <<endl;
+		return;
+	}
+	heroSort(heroes);
+	int *lootRatio = new int[roomCap];
+	int *intvisited = new int[roomCap];
+	int max = start;
+	static const uint INF = -2147483646;
+	for(int i = 0; i < roomCap; i++)
+	{
+		lootRatio[i] = INF;
+		intvisited[i] = i;
+	}
+	lootRatio[start] = 0;
+	int todo = roomCap;
+	while(todo > 1)
+	{
+		for(int i = 0; i < todo; i++)
+		{
+			//cout << "lr at int i: " << lootRatio[intvisited[i]] <<endl;
+			//cout << "lr at int max: " << lootRatio[intvisited[i]] << endl;
+			if(lootRatio[intvisited[i]] > lootRatio[intvisited[max]] || ((lootRatio[intvisited[max]] == INF || max >= todo) && lootRatio[intvisited[i]] != INF))
+			{
+				//cout << "max before " << max <<endl;
+				max = i;
+				//cout << "max after " << max <<endl;
+			}
+		}
+		
+		swap(intvisited, max, --todo);
+		
+		for(int i = 0; i < todo; i++)
+		{
+			if(adj[intvisited[todo]][intvisited[i]] != 0)
+			{
+				if(lootRatio[intvisited[i]] == INF || (lootRatio[intvisited[i]] < lootRatio[intvisited[todo]] + ratioCalc(intvisited[i])))
+				{
+					//cout << todo <<endl;
+					//cout << "i: " << i << "    " << "intvisited[i]: " << intvisited[i] <<endl;
+					//cout << lootRatio[intvisited[i]] << " set equal to " << lootRatio[intvisited[todo]] + ratioCalc(i) <<endl;
+					lootRatio[intvisited[i]] = lootRatio[intvisited[todo]] + ratioCalc(intvisited[i]);
+				}
+				
+			}
+		}
+	}
+	int heroAdvancer = heroCap - 1;
+	bool heroDidNotDie = true;
+	int heroHP = heroes[heroAdvancer].HP;
+	for(int i = 0; i < roomCap; i++)
+	{
+		cout << "Our heroes enter " << rooms[i].name <<endl;
+		cout << heroes[heroAdvancer].name << " and " << rooms[i].monster << " fight " <<endl;
+		bool isAlive = true;
+		int monsterStr = rooms[i].strength;
+		if(!heroDidNotDie)
+		{
+			heroHP = heroes[heroAdvancer].HP;
+		}
+		int heroStr = heroes[heroAdvancer].strength;
+		while(isAlive)
+		{
+			int previousStr = monsterStr;
+			monsterStr = monsterStr - heroStr;
+			heroHP = heroHP - previousStr;
+			
+			if(heroHP > 0)
+			{
+				cout << heroes[heroAdvancer].name << " took " << previousStr << " damage, lowering his HP to " << heroHP <<endl;
+			}
+			else if(heroAdvancer >= 0)
+			{
+				cout << heroes[heroAdvancer].name << " takes " << previousStr << " damage and dies..." << endl;
+				heroDidNotDie = false;
+				heroAdvancer--;
+			}
+			
+			if(heroAdvancer < 0)
+			{
+				cout << "Our heroes have perished " <<endl;
+				return;
+			}
+			
+			if(monsterStr > 0)
+			{
+				cout << rooms[i].monster << " takes " << heroStr << " damage, lowering his strength to " << monsterStr <<endl;
+			}
+			else
+			{
+				cout << rooms[i].monster << " takes " << heroStr << " damage and dies..." <<endl;
+				Hero::cash += rooms[i].treasure;
+				if(heroHP > 0)
+				{
+					heroDidNotDie = true;
+				}
+				isAlive = false;
+			}
+		}
+	}
+	int pizza = pizzaParty(start, roomCap - 1, Hero::cash);
+	cout << pizza << " Pizzas will be ordered " <<endl;
+	
+	
 }

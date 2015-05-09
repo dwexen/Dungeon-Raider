@@ -7,7 +7,9 @@
 *
 */
 #include "Dungeon.h"
-
+#include <iostream>
+#include <fstream>
+#include <stdio.h>
 void testBipartiteOddEven(uint n, uint m)
 {
 	Dungeon d((n+m), 5);
@@ -32,8 +34,134 @@ void testBipartiteOddEven(uint n, uint m)
 	d.breadthRooms();
 	d.mst();
 }
+/*
+*Pre-condition: A proper file has been created called dungeon.dat
+*
+*Post-condition: Presents the user with clear options and executes the selected option
+*
+*/
 int main()
 {
+	#if 1
+	ifstream dungeonInfo("dungeon.dat");
+	Dungeon dungeon;
+	int numNodes;
+	int numEdges;
+	int numHeroes;
+	string roomName;
+	string monsterName;
+	int strength;
+	int treasure;
+	int source, dest;
+	int weight;
+	string heroName;
+	int heroStrength, heroHealth;
+	uint heroCash = 0;
+	
+	if(!dungeonInfo)
+		return 0;
+	
+	dungeonInfo >> numNodes;
+	dungeonInfo >> numEdges;
+	dungeonInfo >> numHeroes;
+	
+	for(uint i = 0; i < numNodes; ++i)
+	{
+		dungeonInfo >> roomName;
+		dungeonInfo >> monsterName;
+		dungeonInfo >> strength;
+		dungeonInfo >> treasure;
+		
+		dungeon.addRoom(roomName, monsterName, strength, treasure);
+	}
+	
+	for(uint i = 0; i < numEdges; ++i)
+	{
+		dungeonInfo >> source;
+		dungeonInfo >> dest;
+		dungeonInfo >> weight;
+		
+		dungeon.setHall(source, dest, weight);
+	}
+	
+	for(uint i = 0; i < numHeroes; ++i)
+	{
+		dungeonInfo >> heroName;
+		dungeonInfo >> heroStrength;
+		dungeonInfo >> heroHealth;
+		
+		dungeon.addHero(heroName, heroStrength, heroHealth);
+	}
+	while(true)
+	{
+		int selection;
+		cout << "Main Menu: \n" << "1) Depth\n" << "2) Breadth\n" << "3) Halls\n" 
+			<< "4) Heroes\n" << "5) Most Safe Pizza Sharing\n" << "6) Lucrative Path\n" << "7) Lucrative Paths\n"
+			<< "8) Pizza Party\n" << "9) RAID!\n" << "0) Exit\n";
+		cout << "Enter a number between 0 and 9: " <<endl;
+		cin >> selection;
+		if(selection < 0 || selection > 9)
+		{
+			do
+			{
+				cout << "Invalid input, enter a number between 0 and 9" <<endl;
+				cin >> selection;
+			} while(selection < 0 || selection > 9);
+		}
+		switch (selection)
+			{
+				case 1: 
+					dungeon.depthRooms();
+					break;
+				case 2:
+					dungeon.breadthRooms();
+					break; 
+				case 3:
+					dungeon.showHalls();
+					break; 
+				case 4:	
+					dungeon.showHeroes();
+					break;
+				case 5: 
+					dungeon.mst();
+					break;
+				case 6: 
+					cout << "Where to start?" <<endl;
+					dungeon.listRooms();
+					int ans;
+					cin >> ans;
+					dungeon.lucrativePath(ans);
+					break; 
+				case 7: 
+					dungeon.lucrativePaths();
+					break; 
+				case 8: 
+					cout << "Where to start?" <<endl;
+					dungeon.listRooms();
+					int start, end, money;
+					cin >> start;
+					cout << "Where to end?" << endl;
+					cin >> end;
+					cout << "How much money will they have?" <<endl;
+					cin >> money;
+					cout << dungeon.pizzaParty(start, end, money) << " pizzas can be delivered." <<endl;
+					break;
+				case 9: 
+					cout << "Where to start?" <<endl;
+					dungeon.listRooms();
+					int startRoom;
+					cin >> startRoom;
+					dungeon.raid(startRoom);
+					break;
+				case 0: cout << "Shutting down..." <<endl;
+					return 0;
+			}
+	}
+	#endif
+	//dungeon.listRooms();
+	//dungeon.showHalls();
+	//dungeon.showHeroes();
+		
 	#if 0
 	Dungeon d(7, 5);
 	d.addRoom("room0","jeff", 4, 100);
@@ -137,7 +265,7 @@ int main()
 	d.pizzaParty(2, 3, 50);
 	
 	#endif
-	#if 1
+	#if 0
 	Dungeon dungeon(6,6);
 	dungeon.addRoom("Room A","Monster 1",3,10);
 	dungeon.addRoom("Room B","Monster 2",5,3);
@@ -193,9 +321,9 @@ int main()
 	//d.showHalls();
 	//d.showHeroes();
 	
-	d.lucrativePath(2);
+	//d.lucrativePath(2);
 	d.lucrativePaths();
-	d.pizzaParty(0, 3, 1250);
+	//d.pizzaParty(0, 3, 1250);
 	#endif
 	
 	//testBipartiteOddEven(6,4);

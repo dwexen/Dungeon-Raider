@@ -13,3 +13,10 @@ void Dungeon::swap(int*& arr, int x, int y)
 	arr[x] = arr[y];
 	arr[y] = temp;
 }
+
+void Dungeon::swap(Hero*& arr, int x, int y)
+{
+	Hero temp = arr[x];
+	arr[x] = arr[y];
+	arr[y] = temp;
+}

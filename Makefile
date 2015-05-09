@@ -1,4 +1,4 @@
-NAME = dungeon2
+NAME = dungeonfinal
 TARBALL = mcolozzo-$(NAME).tar.gz
 SRC = main.cpp am.cpp room.cpp traverse.cpp pizzadelivery.cpp swap.cpp
 OBJ = $(SRC:.cpp=.o)
